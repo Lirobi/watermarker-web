@@ -7,11 +7,19 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-
+import { hasUserPaid } from "@/lib/payment";
+import { useEffect, useState } from "react";
 export default function HomePage() {
   const { data: session } = useSession();
   const router = useRouter();
-
+  const [hasPaid, setHasPaid] = useState(false);
+  useEffect(() => {
+    const checkPaymentStatus = async () => {
+      const hasPaid = await hasUserPaid();
+      setHasPaid(hasPaid);
+    }
+    checkPaymentStatus();
+  }, []);
   const handleGetStarted = () => {
     if (session) {
       router.push("/dashboard");
@@ -52,7 +60,7 @@ export default function HomePage() {
                   onClick={handleGetStarted}
                   className="font-medium"
                 >
-                  {session ? "Go to Watermarker" : "Get Started"}
+                  {session && hasPaid ? "Go to Watermarker" : "Get Started"}
                 </Button>
                 <Button
                   variant="flat"

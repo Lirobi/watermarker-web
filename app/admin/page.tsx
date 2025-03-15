@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import { Avatar } from "@heroui/avatar";
 import { Badge } from "@heroui/badge";
 import { Spinner } from "@heroui/spinner";
+import { Chip } from "@heroui/chip";
 
 interface User {
     id: string;
@@ -29,10 +30,14 @@ interface User {
         lastVisit: string;
         visitCount: number;
     };
+    payment?: {
+        status: string;
+    };
 }
 
 export default function AdminPage() {
     const { data: session, status } = useSession();
+    console.log(session);
     const router = useRouter();
     const [selectedTab, setSelectedTab] = useState("users");
     const [users, setUsers] = useState<User[]>([]);
@@ -55,46 +60,9 @@ export default function AdminPage() {
             const fetchData = async () => {
                 setIsLoading(true);
                 try {
-                    // In a real implementation, these would be API calls
-                    // Mock data for demonstration
-                    const mockUsers: User[] = [
-                        {
-                            id: "1",
-                            name: "Admin User",
-                            email: "lilian.bischung@gmail.com",
-                            image: null,
-                            role: "ADMIN",
-                            createdAt: new Date().toISOString(),
-                            storageUsed: 1024 * 1024 * 5, // 5MB
-                            analytics: {
-                                ipAddress: "192.168.1.1",
-                                device: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-                                country: "United States",
-                                city: "San Francisco",
-                                lastVisit: new Date().toISOString(),
-                                visitCount: 10,
-                            },
-                        },
-                        {
-                            id: "2",
-                            name: "Regular User",
-                            email: "user@example.com",
-                            image: null,
-                            role: "USER",
-                            createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
-                            storageUsed: 1024 * 1024 * 2, // 2MB
-                            analytics: {
-                                ipAddress: "192.168.1.2",
-                                device: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                                country: "Canada",
-                                city: "Toronto",
-                                lastVisit: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-                                visitCount: 5,
-                            },
-                        },
-                    ];
-
-                    setUsers(mockUsers);
+                    const users = await fetch("/api/admin/users");
+                    const usersData = await users.json();
+                    setUsers(usersData);
                     setMaintenanceMode(false); // Mock setting
                 } catch (error) {
                     console.error("Error fetching admin data:", error);
@@ -115,6 +83,20 @@ export default function AdminPage() {
             setIsSaving(false);
         }, 1000);
     };
+
+    const handleTogglePaymentStatus = async (userId: string, status: string) => {
+        const response = await fetch(`/api/user/payment-status`, {
+            method: "POST",
+            body: JSON.stringify({ userId, status }),
+        });
+        if (response.ok) {
+            const data = await response.json();
+            console.log("User paid status updated");
+            setUsers(users.map((user) => user.id === userId ? data.user : user));
+        } else {
+            console.error("User paid status not updated");
+        }
+    }
 
     const formatBytes = (bytes: number) => {
         if (bytes === 0) return "0 Bytes";
@@ -184,6 +166,7 @@ export default function AdminPage() {
                                     <TableColumn>USER</TableColumn>
                                     <TableColumn>ROLE</TableColumn>
                                     <TableColumn>STORAGE USED</TableColumn>
+                                    <TableColumn>PAYMENT STATUS</TableColumn>
                                     <TableColumn>JOINED</TableColumn>
                                     <TableColumn>ACTIONS</TableColumn>
                                 </TableHeader>
@@ -204,16 +187,20 @@ export default function AdminPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge color={user.role === "ADMIN" ? "danger" : "primary"}>
+                                                <Chip size="sm" variant="flat" color={user.role === "ADMIN" ? "danger" : "primary"}>
                                                     {user.role}
-                                                </Badge>
+                                                </Chip>
                                             </TableCell>
                                             <TableCell>{formatBytes(user.storageUsed)}</TableCell>
                                             <TableCell>{formatDate(user.createdAt)}</TableCell>
                                             <TableCell>
+                                                <Chip size="sm" variant="flat" color={user.payment?.status === "PAID" ? "success" : "danger"}>
+                                                    {user.payment?.status || "UNPAID"}
+                                                </Chip>
+                                            </TableCell>
+                                            <TableCell>
                                                 <div className="flex gap-2">
-                                                    <Button size="sm" variant="flat">View</Button>
-                                                    <Button size="sm" variant="flat" color="danger">Delete</Button>
+                                                    <Button size="sm" variant="flat" color={user.payment?.status === "PAID" ? "danger" : "primary"} onClick={() => handleTogglePaymentStatus(user.id, user.payment?.status === "PAID" ? "UNPAID" : "PAID")}>{user.payment?.status === "PAID" ? "Remove Paid Status" : "Give Paid Status"}</Button>
                                                 </div>
                                             </TableCell>
                                         </TableRow>
@@ -317,6 +304,6 @@ export default function AdminPage() {
                     </CardBody>
                 </Card>
             </motion.div>
-        </div>
+        </div >
     );
-} 
+}

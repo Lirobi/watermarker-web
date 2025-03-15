@@ -25,12 +25,29 @@ import {
 
 import { siteConfig } from "@/config/site";
 import { Logo } from "@/components/icons";
+import { useEffect, useState } from "react";
 
 export const Navbar = () => {
   const { data: session, status } = useSession();
   const isAdmin = session?.user?.role === "ADMIN";
   const isAuthenticated = status === "authenticated";
   const isLoading = status === "loading";
+  const [hasPaid, setHasPaid] = useState(false);
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchPaymentStatus = async () => {
+        const res = await fetch(`/api/user/payment-status`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const data = await res.json();
+        setHasPaid(data.hasPaid);
+      }
+      fetchPaymentStatus();
+    }
+  }, [isAuthenticated, session]);
 
   return (
     <HeroUINavbar maxWidth="xl" position="sticky">
@@ -43,7 +60,7 @@ export const Navbar = () => {
         </NavbarBrand>
         <ul className="hidden lg:flex gap-4 justify-start ml-2">
           {siteConfig.navItems.map((item) => (
-            (item.label === "Watermarker" && !isAuthenticated) ? null : (
+            (item.label === "Watermarker" && !hasPaid) ? null : (
               <NavbarItem key={item.href}>
                 <NextLink
                   className={clsx(
@@ -104,15 +121,18 @@ export const Navbar = () => {
                 <DropdownItem key="dashboard">
                   <NextLink href="/dashboard">Watermarker</NextLink>
                 </DropdownItem>
-                <DropdownItem key="settings">
-                  <NextLink href="/settings">Settings</NextLink>
+                <DropdownItem key="pricing">
+                  <NextLink href="/pricing">Pricing</NextLink>
                 </DropdownItem>
                 {isAdmin ? (
                   <DropdownItem key="admin">
                     <NextLink href="/admin">Admin Panel</NextLink>
                   </DropdownItem>
                 ) : null}
-                <DropdownItem key="logout" color="danger" onClick={() => signOut()}>
+                <DropdownItem key="logout" color="danger" onClick={() => {
+                  signOut();
+                  window.location.href = "/";
+                }}>
                   Log Out
                 </DropdownItem>
               </DropdownMenu>
