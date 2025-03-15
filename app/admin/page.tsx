@@ -44,6 +44,8 @@ export default function AdminPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [maintenanceMode, setMaintenanceMode] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [updatingUserIds, setUpdatingUserIds] = useState<string[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
     // Redirect if not authenticated or not admin
     useEffect(() => {
@@ -84,19 +86,43 @@ export default function AdminPage() {
         }, 1000);
     };
 
-    const handleTogglePaymentStatus = async (userId: string, status: string) => {
-        const response = await fetch(`/api/user/payment-status`, {
-            method: "POST",
-            body: JSON.stringify({ userId, status }),
-        });
-        if (response.ok) {
+    const handleTogglePaymentStatus = async (userId: string, currentStatus: string) => {
+        try {
+            // Add user to updating list to show loading state
+            setUpdatingUserIds(prev => [...prev, userId]);
+            // Clear any previous errors
+            setError(null);
+
+            const newStatus = currentStatus === "PAID" ? "UNPAID" : "PAID";
+
+            const response = await fetch(`/api/user/payment-status`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ userId, status: newStatus }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Failed to update payment status:", errorData);
+                setError(`Failed to update payment status: ${errorData.error || response.statusText}`);
+                return;
+            }
+
             const data = await response.json();
-            console.log("User paid status updated");
-            setUsers(users.map((user) => user.id === userId ? data.user : user));
-        } else {
-            console.error("User paid status not updated");
+            console.log("User paid status updated:", data);
+
+            // Update the users list with the updated user
+            setUsers(users.map((user) => (user.id === userId ? data.user : user)));
+        } catch (err) {
+            console.error("Error updating payment status:", err);
+            setError("An unexpected error occurred while updating payment status");
+        } finally {
+            // Remove user from updating list
+            setUpdatingUserIds(prev => prev.filter(id => id !== userId));
         }
-    }
+    };
 
     const formatBytes = (bytes: number) => {
         if (bytes === 0) return "0 Bytes";
@@ -166,8 +192,8 @@ export default function AdminPage() {
                                     <TableColumn>USER</TableColumn>
                                     <TableColumn>ROLE</TableColumn>
                                     <TableColumn>STORAGE USED</TableColumn>
-                                    <TableColumn>PAYMENT STATUS</TableColumn>
                                     <TableColumn>JOINED</TableColumn>
+                                    <TableColumn>PAYMENT STATUS</TableColumn>
                                     <TableColumn>ACTIONS</TableColumn>
                                 </TableHeader>
                                 <TableBody>
@@ -200,7 +226,16 @@ export default function AdminPage() {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex gap-2">
-                                                    <Button size="sm" variant="flat" color={user.payment?.status === "PAID" ? "danger" : "primary"} onClick={() => handleTogglePaymentStatus(user.id, user.payment?.status === "PAID" ? "UNPAID" : "PAID")}>{user.payment?.status === "PAID" ? "Remove Paid Status" : "Give Paid Status"}</Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="flat"
+                                                        color={user.payment?.status === "PAID" ? "danger" : "primary"}
+                                                        onClick={() => handleTogglePaymentStatus(user.id, user.payment?.status || "UNPAID")}
+                                                        isLoading={updatingUserIds.includes(user.id)}
+                                                        isDisabled={updatingUserIds.includes(user.id)}
+                                                    >
+                                                        {user.payment?.status === "PAID" ? "Remove Paid Status" : "Give Paid Status"}
+                                                    </Button>
                                                 </div>
                                             </TableCell>
                                         </TableRow>

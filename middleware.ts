@@ -54,14 +54,17 @@ export async function middleware(request: NextRequest) {
                         return res.json();
                     })
                     .then(data => {
-                        console.log(data);
-                        if (!data.hasPaid) {
+                        console.log("Payment status response:", data);
+                        // Only redirect if explicitly confirmed user has not paid
+                        if (data && data.hasPaid === false) {
                             return new URL("/pricing?access=denied", request.url);
                         }
+                        // Don't redirect if paid or if response is unclear
                         return null;
                     })
                     .catch(error => {
                         console.error("Error checking payment status:", error);
+                        // Don't redirect on error - better to let users try than block incorrectly
                         return null;
                     });
 

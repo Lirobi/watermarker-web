@@ -129,9 +129,14 @@ export const Navbar = () => {
                     <NextLink href="/admin">Admin Panel</NextLink>
                   </DropdownItem>
                 ) : null}
-                <DropdownItem key="logout" color="danger" onClick={() => {
-                  signOut();
-                  window.location.href = "/";
+                <DropdownItem key="logout" color="danger" onClick={async () => {
+                  try {
+                    await signOut({ redirect: false });
+                    window.location.href = "/";
+                  } catch (error) {
+                    console.error("Error signing out:", error);
+                    window.location.href = "/";
+                  }
                 }}>
                   Log Out
                 </DropdownItem>
@@ -190,7 +195,15 @@ export const Navbar = () => {
               <NavbarMenuItem>
                 <Button
                   color="danger"
-                  onClick={() => signOut()}
+                  onClick={async () => {
+                    try {
+                      await signOut({ redirect: false });
+                      window.location.href = "/";
+                    } catch (error) {
+                      console.error("Error signing out:", error);
+                      window.location.href = "/";
+                    }
+                  }}
                   variant="flat"
                   className="w-full justify-start"
                 >
