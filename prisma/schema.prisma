@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -56,6 +56,7 @@ model User {
   watermarks        Watermark[]
   userAnalytics     UserAnalytics?
   storageUsed       Int         @default(0) // Storage used in bytes
+  payment           Payment?    // Relation to payment information
 }
 
 model VerificationToken {
@@ -99,6 +100,19 @@ model SiteSettings {
   maintenanceMode Boolean @default(false)
 }
 
+// Payment Model
+model Payment {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeCustomerId String?  // Stripe customer ID
+  stripePriceId   String?   // Stripe price ID
+  stripeSessionId String?   // Stripe checkout session ID
+  status          PaymentStatus @default(UNPAID)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
 enum UserRole {
   USER
   ADMIN
@@ -107,4 +121,9 @@ enum UserRole {
 enum WatermarkType {
   TEXT
   IMAGE
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
 }

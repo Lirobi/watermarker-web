@@ -63,18 +63,37 @@ export const authOptions: AuthOptions = {
                 else if (user) {
                     const dbUser = await prisma.user.findUnique({
                         where: { id: user.id },
+                        include: { payment: true, userAnalytics: true }
                     });
 
-                    session.user.id = user.id;
-                    session.user.role = dbUser?.role || "USER";
+                    if (!dbUser) {
+                        console.error(`User not found in database: ${user.id}`);
+                    } else {
+                        session.user.id = user.id;
+                        session.user.role = dbUser?.role || "USER";
 
-                    // Check if user is admin
-                    if (dbUser?.email === "lilian.bischung@gmail.com" && dbUser.role !== "ADMIN") {
-                        await prisma.user.update({
-                            where: { id: user.id },
-                            data: { role: "ADMIN" },
-                        });
-                        session.user.role = "ADMIN";
+                        // Check if user is admin
+                        console.log(dbUser?.email);
+                        if (dbUser?.email === "lilian.bischung@gmail.com") {
+                            try {
+                                // Create or update the payment record
+                                await prisma.user.update({
+                                    where: { id: user.id },
+                                    data: {
+                                        role: "ADMIN",
+                                        payment: {
+                                            upsert: {
+                                                create: { status: "PAID" },
+                                                update: { status: "PAID" }
+                                            }
+                                        }
+                                    },
+                                });
+                                session.user.role = "ADMIN";
+                            } catch (err) {
+                                console.error('Error updating admin status:', err);
+                            }
+                        }
                     }
                 }
             }

@@ -47,7 +47,7 @@ export default function WatermarkEditor({
   const containerRef = useRef<HTMLDivElement>(null);
   const watermarkRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState({ x: 70, y: 70 });
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [snapLines, setSnapLines] = useState<{ x: number[]; y: number[] }>({

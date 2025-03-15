@@ -13,6 +13,10 @@ export const siteConfig = {
       href: "/#features",
     },
     {
+      label: "Pricing",
+      href: "/pricing",
+    },
+    {
       label: "Watermarker",
       href: "/dashboard",
     },
@@ -23,12 +27,8 @@ export const siteConfig = {
       href: "/dashboard",
     },
     {
-      label: "My Watermarks (soon)",
-      href: "/dashboard",
-    },
-    {
-      label: "Settings",
-      href: "/settings",
+      label: "Pricing",
+      href: "/pricing",
     },
   ],
   links: {
