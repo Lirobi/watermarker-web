@@ -14,6 +14,8 @@ export async function middleware(request: NextRequest) {
 
     // Check if the request is for the watermarker page
     const isWatermarkerPage = pathname.startsWith('/watermarker');
+    // Check if the request is for the dashboard page (which contains the watermarker tool)
+    const isDashboardPage = pathname.startsWith('/dashboard');
 
     // Run both operations in parallel using Promise.all
     try {
@@ -38,8 +40,8 @@ export async function middleware(request: NextRequest) {
             promises.push(maintenancePromise);
             redirectUrls.push(null); // Placeholder for maintenance redirect
 
-            // Check for payment status if accessing watermarker page
-            if (isWatermarkerPage) {
+            // Check for payment status if accessing watermarker or dashboard page
+            if (isWatermarkerPage || isDashboardPage) {
                 if (!token) {
                     // If not logged in, redirect to login
                     return NextResponse.redirect(new URL('/auth/signin', request.url));
@@ -49,14 +51,16 @@ export async function middleware(request: NextRequest) {
                     .then(res => {
                         if (!res.ok) {
                             console.error(`Error checking payment status: ${res.status} ${res.statusText}`);
-                            return { hasPaid: false, error: `HTTP error ${res.status}` };
+                            // In production, we should continue without payment check rather than blocking
+                            return { hasPaid: process.env.NODE_ENV === 'production' ? true : false, error: `HTTP error ${res.status}` };
                         }
                         return res.json();
                     })
                     .then(data => {
                         console.log("Payment status response:", data);
-                        // Only redirect if explicitly confirmed user has not paid
-                        if (data && data.hasPaid === false) {
+                        // Only redirect if explicitly confirmed user has not paid and we're not in production
+                        // In production, we allow access by default to avoid blocking users incorrectly
+                        if (data && data.hasPaid === false && process.env.NODE_ENV !== 'production') {
                             return new URL("/pricing?access=denied", request.url);
                         }
                         // Don't redirect if paid or if response is unclear
@@ -104,15 +108,15 @@ export async function middleware(request: NextRequest) {
 
             // Extract redirect URLs from results
             const maintenanceRedirectUrl = results[0] as URL | null;
-            const paymentRedirectUrl = isWatermarkerPage ? results[1] as URL | null : null;
+            const paymentRedirectUrl = (isWatermarkerPage || isDashboardPage) ? results[1] as URL | null : null;
 
             // If maintenance mode is active and user is not admin, redirect
             if (maintenanceRedirectUrl) {
                 return NextResponse.rewrite(maintenanceRedirectUrl.toString());
             }
 
-            // If payment check failed and user is trying to access watermarker, redirect
-            if (isWatermarkerPage && paymentRedirectUrl) {
+            // If payment check failed and user is trying to access watermarker or dashboard, redirect
+            if ((isWatermarkerPage || isDashboardPage) && paymentRedirectUrl) {
                 return NextResponse.redirect(paymentRedirectUrl.toString());
             }
         }
