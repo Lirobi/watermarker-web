@@ -168,11 +168,12 @@ export default function PricingPageClient({
                                     <Button
                                         color="primary"
                                         as="a"
-                                        href="/auth/signin?callbackUrl=/pricing"
+                                        href="/pricing"
+                                        //href="/auth/signin?callbackUrl=/pricing"
                                         size="lg"
                                         className="font-medium px-8 py-6 text-lg"
                                     >
-                                        Sign In to Purchase
+                                        Not avaliable yet
                                     </Button>
                                 )}
                             </CardFooter>
