@@ -52,7 +52,7 @@ export default function HomePage() {
                   onClick={handleGetStarted}
                   className="font-medium"
                 >
-                  Get Started
+                  {session ? "Go to Watermarker" : "Get Started"}
                 </Button>
                 <Button
                   variant="flat"
@@ -215,7 +215,7 @@ export default function HomePage() {
               onClick={handleGetStarted}
               className="bg-white font-medium text-blue-600 hover:bg-gray-100"
             >
-              {session ? "Go to Dashboard" : "Get Started - It's Free"}
+              {session ? "Go to Watermarker" : "Get Started - It's Free"}
             </Button>
           </motion.div>
         </div>

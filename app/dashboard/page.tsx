@@ -33,7 +33,7 @@ export default function DashboardPage() {
 
     // Redirect if not authenticated
     if (status === "unauthenticated") {
-        router.push("/auth/signin");
+        router.push("/");
         return null;
     }
 

@@ -13,30 +13,22 @@ export const siteConfig = {
       href: "/#features",
     },
     {
-      label: "Dashboard",
+      label: "Watermarker",
       href: "/dashboard",
-    },
-    {
-      label: "Help",
-      href: "/help",
     },
   ],
   navMenuItems: [
     {
-      label: "Dashboard",
+      label: "Watermarker",
       href: "/dashboard",
     },
     {
-      label: "My Watermarks",
+      label: "My Watermarks (soon)",
       href: "/dashboard",
     },
     {
       label: "Settings",
       href: "/settings",
-    },
-    {
-      label: "Help & Support",
-      href: "/help",
     },
   ],
   links: {
