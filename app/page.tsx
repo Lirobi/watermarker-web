@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { hasUserPaid } from "@/lib/payment";
+import { hasUserPaidClient } from "@/app/lib/payment-client";
 import { useEffect, useState } from "react";
 export default function HomePage() {
   const { data: session } = useSession();
@@ -15,11 +15,13 @@ export default function HomePage() {
   const [hasPaid, setHasPaid] = useState(false);
   useEffect(() => {
     const checkPaymentStatus = async () => {
-      const hasPaid = await hasUserPaid();
+      const hasPaid = await hasUserPaidClient();
       setHasPaid(hasPaid);
     }
-    checkPaymentStatus();
-  }, []);
+    if (session) {
+      checkPaymentStatus();
+    }
+  }, [session]);
   const handleGetStarted = () => {
     if (session) {
       router.push("/dashboard");

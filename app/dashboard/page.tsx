@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
 import WatermarkEditor from "@/components/WatermarkEditor";
-import { hasUserPaid } from "@/lib/payment";
+import { hasUserPaidClient } from "@/app/lib/payment-client";
 export default function DashboardPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
