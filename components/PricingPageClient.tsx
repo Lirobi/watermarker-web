@@ -156,11 +156,11 @@ export default function PricingPageClient({
                                     <Button
                                         color="success"
                                         as="a"
-                                        href="/dashboard"
+                                        href="/pricing" // TODO: Change to /dashboard
                                         size="lg"
                                         className="font-medium px-8 py-6 text-lg"
                                     >
-                                        Access Watermarker
+                                        Not avaliable yet
                                     </Button>
                                 ) : session ? (
                                     <ButtonCheckout />
