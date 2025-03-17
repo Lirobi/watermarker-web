@@ -73,39 +73,39 @@ export default function DashboardPage() {
     // Save data to localStorage whenever relevant state changes
     useEffect(() => {
         if (typeof window !== 'undefined' && preview) {
-            // For videos, store the data in a separate localStorage key to avoid size limits
-            let videoDataKey = null;
+            // For videos and images, store the data in a separate localStorage key to avoid size limits
+            let mediaDataKey = null;
 
-            if (mediaType === 'video' && preview) {
-                // Generate a unique key for the video data
-                videoDataKey = `video_data_${Date.now()}`;
+            if ((mediaType === 'video' || mediaType === 'image') && preview) {
+                // Generate a unique key for the media data
+                mediaDataKey = `${mediaType}_data_${Date.now()}`;
 
-                // Store the video data separately
-                if (preview.length < 5000000) { // Only store if it's not too large (< 5MB)
+                // Store the media data separately if not too large (< 5MB)
+                if (preview.length < 5000000) {
                     try {
-                        localStorage.setItem(videoDataKey, preview);
-                        console.log("Stored video data in localStorage with key:", videoDataKey);
+                        localStorage.setItem(mediaDataKey, preview);
+                        console.log(`Stored ${mediaType} data in localStorage with key:`, mediaDataKey);
 
-                        // Clean up any old video data
+                        // Clean up any old media data
                         for (let i = 0; i < localStorage.length; i++) {
                             const key = localStorage.key(i);
-                            if (key && key.startsWith('video_data_') && key !== videoDataKey) {
+                            if (key && key.startsWith(`${mediaType}_data_`) && key !== mediaDataKey) {
                                 localStorage.removeItem(key);
-                                console.log("Removed old video data:", key);
+                                console.log(`Removed old ${mediaType} data:`, key);
                             }
                         }
                     } catch (e) {
-                        console.error("Failed to store video data in localStorage:", e);
-                        videoDataKey = null; // Reset if storage failed
+                        console.error(`Failed to store ${mediaType} data in localStorage:`, e);
+                        mediaDataKey = null; // Reset if storage failed
                     }
                 } else {
-                    console.warn("Video data too large for localStorage");
-                    videoDataKey = null;
+                    console.warn(`${mediaType} data too large for localStorage`);
+                    mediaDataKey = null;
                 }
             }
 
             const dataToSave = {
-                preview: mediaType === 'video' ? null : preview, // Don't store video data in the main object
+                preview: null, // Don't store media data in the main object
                 watermarkText,
                 watermarkImagePreview,
                 watermarkType,
@@ -115,10 +115,28 @@ export default function DashboardPage() {
                 position,
                 selectedTab,
                 mediaType,
-                videoDataKey // Store the key to the video data
+                mediaDataKey // Store the key to the media data
             };
 
-            localStorage.setItem('watermarkData', JSON.stringify(dataToSave));
+            try {
+                localStorage.setItem('watermarkData', JSON.stringify(dataToSave));
+            } catch (e) {
+                console.error('Failed to save watermark data to localStorage:', e);
+
+                // If the error is due to quota, try removing the watermarkImagePreview
+                if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+                    try {
+                        const reducedData = {
+                            ...dataToSave,
+                            watermarkImagePreview: null // Remove this to save space
+                        };
+                        localStorage.setItem('watermarkData', JSON.stringify(reducedData));
+                        console.log('Saved reduced watermark data without image preview');
+                    } catch (innerError) {
+                        console.error('Still failed to save reduced data:', innerError);
+                    }
+                }
+            }
         }
     }, [preview, watermarkText, watermarkImagePreview, watermarkType, opacity, scale, rotation, position, selectedTab, mediaType]);
 
