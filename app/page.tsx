@@ -85,18 +85,15 @@ export default function HomePage() {
               <div className="relative rounded-xl bg-white/80 p-2 shadow-xl backdrop-blur-sm">
                 <div className="aspect-video overflow-hidden rounded-lg">
                   <div className="relative h-full w-full">
-                    <Image
-                      src="/demo-image.jpg"
-                      alt="Watermark Demo"
-                      fill
+                    <video
+                      src="/videos/demo.mp4"
                       style={{ objectFit: "cover" }}
                       className="rounded-lg"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
                     />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <p className="rotate-[-20deg] text-4xl font-bold text-white opacity-70">
-                        WATERMARK
-                      </p>
-                    </div>
                   </div>
                 </div>
                 <div className="absolute -bottom-3 -right-3 -z-10 h-full w-full rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500"></div>
