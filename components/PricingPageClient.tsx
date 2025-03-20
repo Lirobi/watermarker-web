@@ -156,11 +156,11 @@ export default function PricingPageClient({
                                     <Button
                                         color="success"
                                         as="a"
-                                        href="/pricing" // TODO: Change to /dashboard
+                                        href="/dashboard" // TODO: Change to /dashboard
                                         size="lg"
                                         className="font-medium px-8 py-6 text-lg"
                                     >
-                                        Not avaliable yet
+                                        Go to Watermarker
                                     </Button>
                                 ) : session ? (
                                     <ButtonCheckout />
@@ -168,12 +168,12 @@ export default function PricingPageClient({
                                     <Button
                                         color="primary"
                                         as="a"
-                                        href="/pricing"
-                                        //href="/auth/signin?callbackUrl=/pricing"
+                                        //href="/pricing"
+                                        href="/auth/signin?callbackUrl=/pricing"
                                         size="lg"
                                         className="font-medium px-8 py-6 text-lg"
                                     >
-                                        Not avaliable yet
+                                        Get Started
                                     </Button>
                                 )}
                             </CardFooter>

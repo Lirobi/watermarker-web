@@ -42,21 +42,21 @@ model Session {
 }
 
 model User {
-  id                String      @id @default(cuid())
-  name              String?
-  email             String?     @unique
-  emailVerified     DateTime?
-  password          String?     // Hashed password for email/password authentication
-  image             String?
-  role              UserRole    @default(USER)
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  accounts          Account[]
-  sessions          Session[]
-  watermarks        Watermark[]
-  userAnalytics     UserAnalytics?
-  storageUsed       Int         @default(0) // Storage used in bytes
-  payment           Payment?    // Relation to payment information
+  id            String         @id @default(cuid())
+  name          String?
+  email         String?        @unique
+  emailVerified DateTime?
+  password      String? // Hashed password for email/password authentication
+  image         String?
+  role          UserRole       @default(USER)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  watermarks    Watermark[]
+  userAnalytics UserAnalytics?
+  storageUsed   Int            @default(0) // Storage used in bytes
+  payment       Payment? // Relation to payment information
 }
 
 model VerificationToken {
@@ -69,30 +69,30 @@ model VerificationToken {
 
 // Watermarker Models
 model Watermark {
-  id          String   @id @default(cuid())
-  name        String
-  type        WatermarkType
-  content     String   // Text content or base64 encoded image
-  position    String?  // Stored as JSON string: {x: number, y: number}
-  opacity     Float    @default(1.0)
-  scale       Float    @default(1.0)
-  rotation    Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String        @id @default(cuid())
+  name      String
+  type      WatermarkType
+  content   String // Text content or base64 encoded image
+  position  String? // Stored as JSON string: {x: number, y: number}
+  opacity   Float         @default(1.0)
+  scale     Float         @default(1.0)
+  rotation  Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model UserAnalytics {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ipAddress   String?
-  device      String?
-  country     String?
-  city        String?
-  lastVisit   DateTime @default(now())
-  visitCount  Int      @default(1)
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress  String?
+  device     String?
+  country    String?
+  city       String?
+  lastVisit  DateTime @default(now())
+  visitCount Int      @default(1)
 }
 
 model SiteSettings {
@@ -102,15 +102,15 @@ model SiteSettings {
 
 // Payment Model
 model Payment {
-  id              String    @id @default(cuid())
-  userId          String    @unique
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stripeCustomerId String?  // Stripe customer ID
-  stripePriceId   String?   // Stripe price ID
-  stripeSessionId String?   // Stripe checkout session ID
-  status          PaymentStatus @default(UNPAID)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id               String        @id @default(cuid())
+  userId           String        @unique
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeCustomerId String? // Stripe customer ID
+  stripePriceId    String? // Stripe price ID
+  stripeSessionId  String? // Stripe checkout session ID
+  status           PaymentStatus @default(UNPAID)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 }
 
 enum UserRole {
