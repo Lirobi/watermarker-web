@@ -13,5 +13,5 @@ export const PRODUCT_PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_placeholde
 export const PRODUCT = {
     name: 'Watermarker Pro',
     description: 'Lifetime access to Watermarker Pro',
-    price: 20, // $20 USD
+    price: 19.99, // $20 USD
 }; 
