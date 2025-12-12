@@ -41,7 +41,6 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [updatingUserIds, setUpdatingUserIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,7 +62,8 @@ export default function AdminPage() {
           const users = await fetch('/api/admin/users');
           const usersData = await users.json();
           setUsers(usersData);
-          setMaintenanceMode(false); // Mock setting
+          // Read maintenance mode from environment variable
+          setMaintenanceMode(process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true');
         } catch (error) {
           setError('Failed to fetch admin data');
         } finally {
@@ -74,15 +74,6 @@ export default function AdminPage() {
       fetchData();
     }
   }, [status, session]);
-
-  const handleMaintenanceModeToggle = async () => {
-    setIsSaving(true);
-    // In a real implementation, this would be an API call
-    setTimeout(() => {
-      setMaintenanceMode(!maintenanceMode);
-      setIsSaving(false);
-    }, 1000);
-  };
 
   const handleTogglePaymentStatus = async (userId: string, currentStatus: string) => {
     try {
@@ -152,14 +143,14 @@ export default function AdminPage() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Maintenance Mode:</span>
-              <Switch
-                isSelected={maintenanceMode}
-                onValueChange={handleMaintenanceModeToggle}
+              <Chip
                 size="sm"
-                isDisabled={isSaving}
-              />
+                variant="flat"
+                color={maintenanceMode ? 'warning' : 'success'}
+              >
+                {maintenanceMode ? 'ACTIVE' : 'INACTIVE'}
+              </Chip>
             </div>
-            {isSaving && <Spinner size="sm" color="primary" />}
           </div>
         </div>
 
@@ -299,19 +290,31 @@ export default function AdminPage() {
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Site Settings</h3>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
                         <p className="font-medium">Maintenance Mode</p>
-                        <p className="text-sm text-gray-500">
-                          When enabled, only admins can access the site. All other users will see a
-                          maintenance page.
+                        <Chip
+                          size="sm"
+                          variant="flat"
+                          color={maintenanceMode ? 'warning' : 'success'}
+                        >
+                          {maintenanceMode ? 'ACTIVE' : 'INACTIVE'}
+                        </Chip>
+                      </div>
+                      <p className="text-sm text-gray-500 mb-3">
+                        When enabled, only admins can access the site. All other users will see a
+                        maintenance page.
+                      </p>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p className="text-sm font-medium text-blue-900 mb-1">
+                          Configuration
+                        </p>
+                        <p className="text-xs text-blue-700">
+                          Maintenance mode is controlled via the <code className="bg-blue-100 px-1 py-0.5 rounded">NEXT_PUBLIC_MAINTENANCE_MODE</code> environment variable.
+                          Set it to <code className="bg-blue-100 px-1 py-0.5 rounded">"true"</code> to enable or <code className="bg-blue-100 px-1 py-0.5 rounded">"false"</code> to disable.
+                          You'll need to restart the application for changes to take effect.
                         </p>
                       </div>
-                      <Switch
-                        isSelected={maintenanceMode}
-                        onValueChange={handleMaintenanceModeToggle}
-                        isDisabled={isSaving}
-                      />
                     </div>
                   </div>
                 </div>

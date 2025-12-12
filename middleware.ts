@@ -17,108 +17,24 @@ export async function middleware(request: NextRequest) {
     // Check if the request is for the dashboard page (which contains the watermarker tool)
     const isDashboardPage = pathname.startsWith('/dashboard');
 
-    // Run both operations in parallel using Promise.all
     try {
-        const promises = [];
-        const redirectUrls: (URL | null)[] = [];
+        // Check maintenance mode using environment variable
+        // This avoids issues with Prisma in Edge Runtime
+        const maintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
+        if (maintenanceMode && token?.role !== "ADMIN" && !pathname.startsWith('/api') && !pathname.startsWith('/maintenance')) {
+            return NextResponse.rewrite(new URL("/maintenance", request.url));
+        }
 
-        if (!pathname.startsWith('/api')) {
-            // Promise for checking maintenance mode
-            const maintenancePromise = fetch(new URL('/api/settings', request.url))
-                .then(res => res.json())
-                .then(settings => {
-                    if (settings?.maintenanceMode && token?.role !== "ADMIN") {
-                        return new URL("/maintenance", request.url);
-                    }
-                    return null;
-                })
-                .catch(error => {
-                    console.error("Error checking maintenance mode:", error);
-                    return null;
-                });
-
-            promises.push(maintenancePromise);
-            redirectUrls.push(null); // Placeholder for maintenance redirect
-
-            // Check for payment status if accessing watermarker or dashboard page
-            if (isWatermarkerPage || isDashboardPage) {
-                if (!token) {
-                    // If not logged in, redirect to login
-                    return NextResponse.redirect(new URL('/auth/signin', request.url));
-                }
-
-                const paymentPromise = fetch(new URL('/api/user/payment-status', request.url))
-                    .then(res => {
-                        if (!res.ok) {
-                            console.error(`Error checking payment status: ${res.status} ${res.statusText}`);
-                            // In production, we should continue without payment check rather than blocking
-                            return { hasPaid: process.env.NODE_ENV === 'production' ? true : false, error: `HTTP error ${res.status}` };
-                        }
-                        return res.json();
-                    })
-                    .then(data => {
-                        console.log("Payment status response:", data);
-                        // Only redirect if explicitly confirmed user has not paid and we're not in production
-                        // In production, we allow access by default to avoid blocking users incorrectly
-                        if (data && data.hasPaid === false && process.env.NODE_ENV !== 'production') {
-                            return new URL("/pricing?access=denied", request.url);
-                        }
-                        // Don't redirect if paid or if response is unclear
-                        return null;
-                    })
-                    .catch(error => {
-                        console.error("Error checking payment status:", error);
-                        // Don't redirect on error - better to let users try than block incorrectly
-                        return null;
-                    });
-
-
-                promises.push(paymentPromise);
-                redirectUrls.push(null); // Placeholder for payment redirect
+        // Check for payment status if accessing watermarker or dashboard page
+        if ((isWatermarkerPage || isDashboardPage) && !pathname.startsWith('/api')) {
+            if (!token) {
+                // If not logged in, redirect to login
+                return NextResponse.redirect(new URL('/auth/signin', request.url));
             }
 
-            // Promise for updating analytics (only if user is logged in)
-            if (token?.sub) {
-                const userAgent = request.headers.get("user-agent") || "";
-                const ip = request.headers.get("x-forwarded-for") || "";
-
-                const analyticsPromise = fetch(new URL('/api/analytics/update', request.url), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userId: token.sub,
-                        ipAddress: ip,
-                        device: userAgent,
-                        country: "Unknown", // In production, use a geolocation service
-                        city: "Unknown",
-                    }),
-                })
-                    .catch(error => {
-                        console.error("Error updating user analytics:", error);
-                        return null;
-                    });
-
-                promises.push(analyticsPromise);
-            }
-
-            // Wait for all promises to resolve
-            const results = await Promise.all(promises);
-
-            // Extract redirect URLs from results
-            const maintenanceRedirectUrl = results[0] as URL | null;
-            const paymentRedirectUrl = (isWatermarkerPage || isDashboardPage) ? results[1] as URL | null : null;
-
-            // If maintenance mode is active and user is not admin, redirect
-            if (maintenanceRedirectUrl) {
-                return NextResponse.rewrite(maintenanceRedirectUrl.toString());
-            }
-
-            // If payment check failed and user is trying to access watermarker or dashboard, redirect
-            if ((isWatermarkerPage || isDashboardPage) && paymentRedirectUrl) {
-                return NextResponse.redirect(paymentRedirectUrl.toString());
-            }
+            // Note: Payment validation is now handled at the API route level
+            // to avoid Edge Runtime limitations with Prisma
+            // The middleware only checks authentication
         }
     } catch (error) {
         console.error("Error in middleware:", error);

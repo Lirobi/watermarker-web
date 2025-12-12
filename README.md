@@ -45,8 +45,19 @@ A modern web application for adding text and image watermarks to images and vide
    ```
 
 3. Set up environment variables:
-   - Copy `.env.example` to `.env`
-   - Update the database connection string and OAuth credentials
+   Create a `.env` file in the root directory with the following variables:
+   ```env
+   DATABASE_URL="postgresql://user:password@localhost:5432/watermarker_db"
+   NEXTAUTH_URL="http://localhost:3000"
+   NEXTAUTH_SECRET="your-secret-key"
+   GOOGLE_CLIENT_ID="your-google-client-id"
+   GOOGLE_CLIENT_SECRET="your-google-client-secret"
+   STRIPE_SECRET_KEY="your-stripe-secret-key"
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="your-stripe-publishable-key"
+   STRIPE_PRICE_ID="your-stripe-price-id"
+   STRIPE_WEBHOOK_SECRET="your-stripe-webhook-secret"
+   NEXT_PUBLIC_MAINTENANCE_MODE="false"
+   ```
 
 4. Set up the database:
    ```bash
