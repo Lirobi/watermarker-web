@@ -8,7 +8,8 @@ jest.mock('react-draggable', () => {
     return {
         __esModule: true,
         default: ({ children, position, onDrag, onStop }: any) => (
-            <div
+            <button
+                type="button"
                 data-testid="draggable-component"
                 onClick={(e) => {
                     // Simulate drag end
@@ -16,7 +17,7 @@ jest.mock('react-draggable', () => {
                 }}
             >
                 {children}
-            </div>
+            </button>
         ),
     };
 });
@@ -25,7 +26,8 @@ jest.mock('react-draggable', () => {
 jest.mock('next/image', () => ({
     __esModule: true,
     default: (props: any) => {
-        return <img {...props} data-testid="next-image" />;
+        const { alt = '', ...rest } = props;
+        return <img alt={alt} {...rest} data-testid="next-image" />;
     },
 }));
 
