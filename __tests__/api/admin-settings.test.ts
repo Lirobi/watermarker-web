@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import { NextRequest } from 'next/server';
 import { GET, PATCH } from '@/app/api/admin/settings/route';
 import { prisma } from '@/lib/prisma';

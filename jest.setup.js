@@ -75,8 +75,8 @@ jest.mock('next/image', () => ({
 // Mock SVG
 global.SVGElement = function () { };
 
-// Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
+// Mock window.matchMedia (seulement en jsdom : les tests d'API tournent en environnement node, sans window)
+if (typeof window !== 'undefined') Object.defineProperty(window, 'matchMedia', {
     writable: true,
     value: jest.fn().mockImplementation(query => ({
         matches: false,
@@ -99,8 +99,9 @@ global.IntersectionObserver = class IntersectionObserver {
     unobserve() { }
 };
 
-// Mock Request and Response for Next.js API routes
-global.Request = class Request {
+// Request/Response : les tests d'API tournent en environnement node (@jest-environment node), qui fournit les vraies
+// classes dont héritent NextRequest/NextResponse. Ces substituts ne servent qu'aux tests jsdom qui n'en ont pas.
+if (typeof global.Request === 'undefined') global.Request = class Request {
     constructor(input, init) {
         this.url = input;
         this.method = init?.method || 'GET';
@@ -109,7 +110,7 @@ global.Request = class Request {
     }
 };
 
-global.Response = class Response {
+if (typeof global.Response === 'undefined') global.Response = class Response {
     constructor(body, init) {
         this.body = body;
         this.status = init?.status || 200;
